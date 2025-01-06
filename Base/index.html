@@ -58,36 +58,35 @@ float tableSDF(vec3 p) {
 }
 
 float chairSDF(vec3 p) {
-    // Rotationsmatrix um 90 Grad um die y-Achse
-    float angle = radians(90.0);
-    float cosTheta = cos(angle);
-    float sinTheta = sin(angle);
+  float seat = boxSDF(p - vec3(0.0, 0.6, 0.0), vec3(0.5, 0.1, 0.2));
+  float backrest = boxSDF(p - vec3(0.0, 1.0, 0.3), vec3(0.5, 0.4, 0.1)); // Rückenlehne zurückgesetzt
+  float leg1 = boxSDF(p - vec3(-0.4, 0.3, -0.1), vec3(0.1, 0.6, 0.1));
+  float leg2 = boxSDF(p - vec3(-0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
+  float leg3 = boxSDF(p - vec3(0.4, 0.3, -0.1), vec3(0.1, 0.6, 0.1));
+  float leg4 = boxSDF(p - vec3(0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
 
-    // Rotation um die y-Achse
-    vec3 rotatedP = vec3(
-        cosTheta * p.x - sinTheta * p.z,
-        p.y,
-        sinTheta * p.x + cosTheta * p.z
-    );
+  return min(seat, min(backrest, min(leg1, min(leg2, min(leg3, leg4)))));
+}
 
-    // Stuhl SDF mit der transformierten Position
-    float seat = boxSDF(rotatedP - vec3(0.0, 0.6, 0.0), vec3(0.5, 0.1, 0.5));
-    float backrest = boxSDF(rotatedP - vec3(0.0, 1.0, -0.3), vec3(0.5, 0.4, 0.1));
-    float leg1 = boxSDF(rotatedP - vec3(-0.4, 0.3, -0.4), vec3(0.1, 0.6, 0.1));
-    float leg2 = boxSDF(rotatedP - vec3(0.4, 0.3, -0.4), vec3(0.1, 0.6, 0.1));
-    float leg3 = boxSDF(rotatedP - vec3(-0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
-    float leg4 = boxSDF(rotatedP - vec3(0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
 
-    return min(seat, min(backrest, min(leg1, min(leg2, min(leg3, leg4)))));
+float chair2SDF(vec3 p) {
+  float seat = boxSDF(p - vec3(0.0, 0.6, 0.0), vec3(0.5, 0.1, 0.5));
+  float backrest = boxSDF(p - vec3(0.3, 1.0, 0.0), vec3(0.1, 0.4, 0.5)); 
+  float leg1 = boxSDF(p - vec3(-0.4, 0.3, -0.4), vec3(0.1, 0.6, 0.1));
+  float leg2 = boxSDF(p - vec3(-0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
+  float leg3 = boxSDF(p - vec3(0.4, 0.3, -0.4), vec3(0.1, 0.6, 0.1));
+  float leg4 = boxSDF(p - vec3(0.4, 0.3, 0.4), vec3(0.1, 0.6, 0.1));
+
+  return min(seat, min(backrest, min(leg1, min(leg2, min(leg3, leg4)))));
 }
 
 
 float sceneSDF(vec3 p) {
   float floor = planeSDF(p);
   float table = tableSDF(p - vec3(0.0, 0.0, 0.0));
-  float chair1 = chairSDF(p - vec3(-2.0, 0.0, -1.5)); // Originalstuhl
-  float rotatedChair = chairSDF(p - vec3(2.0, 0.0, -1.5)); // Gedrehter Stuhl
-  return min(floor, min(table, min(chair1, rotatedChair)));
+  float chair1 = chairSDF(p - vec3(-2.5, 0.0, 0)); 
+  float chair2 = chair2SDF(p - vec3(2.5, 0.0, -0.5)); 
+  return min(floor, min(table, min(chair1, chair2)));
 }
 
 
@@ -134,7 +133,7 @@ vec3 phongShading(vec3 p, vec3 normal, vec3 lightPos, vec3 color) {
 
 void main() {
   vec3 rayOrigin = vec3(0.0, 6.0, -4.5); // Kamera oberhalb und hinter der Szene
-  vec3 rayDir = rayDirection(200.0, iResolution.xy, fragCoord); // Berechnet Blickrichtung basierend auf FOV und Fragment-Koordinaten
+  vec3 rayDir = rayDirection(210.0, iResolution.xy, fragCoord); // Berechnet Blickrichtung basierend auf FOV und Fragment-Koordinaten
 
   float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST);
 
